@@ -47,9 +47,12 @@ export class ProvidedTaskConfigurations {
         if (task) {
             return task;
         } else {
-            const provider = this.taskProviderRegistry.getProvider(source);
-            if (provider) {
-                const tasks = await provider.provideTasks();
+            const providers = this.taskProviderRegistry.getProvider(source);
+            if (providers.length > 0) {
+                const tasks: TaskConfiguration[] = [];
+                for (const provider of providers) {
+                    tasks.push(...await provider.provideTasks());
+                }
                 this.cacheTasks(tasks);
                 return this.getCachedTask(source, taskLabel);
             }
