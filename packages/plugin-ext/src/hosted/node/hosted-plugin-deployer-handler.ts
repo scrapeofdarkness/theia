@@ -18,6 +18,7 @@ import { injectable, inject } from 'inversify';
 import { ILogger } from '@theia/core';
 import { PluginDeployerHandler, PluginDeployerEntry, PluginMetadata } from '../../common/plugin-protocol';
 import { HostedPluginReader } from './plugin-reader';
+import { Deferred } from '@theia/core/lib/common/promise-util';
 
 @injectable()
 export class HostedPluginDeployerHandler implements PluginDeployerHandler {
@@ -38,19 +39,23 @@ export class HostedPluginDeployerHandler implements PluginDeployerHandler {
      */
     private readonly currentFrontendPluginsMetadata: PluginMetadata[] = [];
 
-    getDeployedFrontendMetadata(): PluginMetadata[] {
-        return this.currentFrontendPluginsMetadata;
+    private readonly backendPluginsMetadataDeferred = new Deferred<PluginMetadata[]>();
+
+    private readonly frontendPluginsMetadataDeferred = new Deferred<PluginMetadata[]>();
+
+    getDeployedFrontendMetadata(): Promise<PluginMetadata[]> {
+        return this.frontendPluginsMetadataDeferred.promise;
     }
 
-    getDeployedBackendMetadata(): PluginMetadata[] {
-        return this.currentBackendPluginsMetadata;
+    getDeployedBackendMetadata(): Promise<PluginMetadata[]> {
+        return this.backendPluginsMetadataDeferred.promise;
     }
 
     async deployFrontendPlugins(frontendPlugins: PluginDeployerEntry[]): Promise<void> {
         for (const plugin of frontendPlugins) {
             const metadata = await this.reader.getPluginMetadata(plugin.path());
             if (metadata) {
-                if (this.getDeployedFrontendMetadata().some(value => value.model.id === metadata.model.id)) {
+                if (this.currentFrontendPluginsMetadata.some(value => value.model.id === metadata.model.id)) {
                     continue;
                 }
 
@@ -58,13 +63,15 @@ export class HostedPluginDeployerHandler implements PluginDeployerHandler {
                 this.logger.info(`Deploying frontend plugin "${metadata.model.name}@${metadata.model.version}" from "${metadata.model.entryPoint.frontend || plugin.path()}"`);
             }
         }
+
+        this.frontendPluginsMetadataDeferred.resolve(this.currentFrontendPluginsMetadata);
     }
 
     async deployBackendPlugins(backendPlugins: PluginDeployerEntry[]): Promise<void> {
         for (const plugin of backendPlugins) {
             const metadata = await this.reader.getPluginMetadata(plugin.path());
             if (metadata) {
-                if (this.getDeployedBackendMetadata().some(value => value.model.id === metadata.model.id)) {
+                if (this.currentBackendPluginsMetadata.some(value => value.model.id === metadata.model.id)) {
                     continue;
                 }
 
@@ -72,6 +79,8 @@ export class HostedPluginDeployerHandler implements PluginDeployerHandler {
                 this.logger.info(`Deploying backend plugin "${metadata.model.name}@${metadata.model.version}" from "${metadata.model.entryPoint.backend || plugin.path()}"`);
             }
         }
+
+        this.backendPluginsMetadataDeferred.resolve(this.currentBackendPluginsMetadata);
     }
 
 }
