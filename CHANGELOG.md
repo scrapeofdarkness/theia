@@ -8,6 +8,7 @@
 - [workspace] allow creation of files and folders using recursive paths
 - [electron] upgraded version of electron used to version 3.
 - [tree] support icons in node tail decorators
+- [electron] use inversify to allow for contributions to the electron main process
 
 Breaking changes:
 
