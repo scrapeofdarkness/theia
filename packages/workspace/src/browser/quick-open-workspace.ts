@@ -15,25 +15,36 @@
  ********************************************************************************/
 
 import { injectable, inject } from 'inversify';
-import { QuickOpenService, QuickOpenModel, QuickOpenItem, QuickOpenGroupItem, QuickOpenMode, LabelProvider } from '@theia/core/lib/browser';
+import {
+    QuickOpenService,
+    QuickOpenModel,
+    QuickOpenItem,
+    QuickOpenGroupItem,
+    QuickOpenMode,
+    LabelProvider,
+    QuickOpenActionProvider
+} from '@theia/core/lib/browser';
 import { WorkspaceService } from './workspace-service';
 import { getTemporaryWorkspaceFileUri } from '../common';
 import { WorkspacePreferences } from './workspace-preferences';
 import URI from '@theia/core/lib/common/uri';
 import { FileSystem, FileSystemUtils } from '@theia/filesystem/lib/common';
 import * as moment from 'moment';
+import { WorkspaceActionProvider } from './workspace-action-provider';
 
 @injectable()
 export class QuickOpenWorkspace implements QuickOpenModel {
 
     protected items: QuickOpenGroupItem[];
     protected opened: boolean;
+    protected actionProvider: QuickOpenActionProvider | undefined;
 
     @inject(QuickOpenService) protected readonly quickOpenService: QuickOpenService;
     @inject(WorkspaceService) protected readonly workspaceService: WorkspaceService;
     @inject(FileSystem) protected readonly fileSystem: FileSystem;
     @inject(LabelProvider) protected readonly labelProvider: LabelProvider;
     @inject(WorkspacePreferences) protected preferences: WorkspacePreferences;
+    @inject(WorkspaceActionProvider) protected workspaceActionProvider: WorkspaceActionProvider;
 
     async open(workspaces: string[]): Promise<void> {
         this.items = [];
@@ -64,7 +75,8 @@ export class QuickOpenWorkspace implements QuickOpenModel {
                 label: uri.path.base,
                 description: (home) ? FileSystemUtils.tildifyPath(uri.path.toString(), home) : uri.path.toString(),
                 groupLabel: `last modified ${moment(stat.lastModification).fromNow()}`,
-                iconClass: await this.labelProvider.getIcon(uri) + ' file-icon',
+                iconClass: await this.labelProvider.getIcon(stat) + ' file-icon',
+                uri: uri,
                 run: (mode: QuickOpenMode): boolean => {
                     if (mode !== QuickOpenMode.OPEN) {
                         return false;
@@ -77,6 +89,9 @@ export class QuickOpenWorkspace implements QuickOpenModel {
                     return true;
                 },
             }));
+            this.actionProvider = !!this.items[0].getUri()
+                ? this.workspaceActionProvider
+                : undefined;
         }
 
         this.quickOpenService.open(this, {
@@ -86,8 +101,8 @@ export class QuickOpenWorkspace implements QuickOpenModel {
         });
     }
 
-    onType(lookFor: string, acceptor: (items: QuickOpenItem[]) => void): void {
-        acceptor(this.items);
+    onType(lookFor: string, acceptor: (items: QuickOpenItem[], actionProvider?: QuickOpenActionProvider) => void): void {
+        acceptor(this.items, this.actionProvider);
     }
 
     select() {
