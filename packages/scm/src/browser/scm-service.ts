@@ -28,8 +28,6 @@ export interface ScmProvider extends Disposable {
     readonly onDidChangeResources: Event<void>;
 
     readonly rootUri?: string;
-    readonly count?: number;
-    readonly commitTemplate?: string;
     readonly onDidChangeCommitTemplate?: Event<string>;
     readonly onDidChangeStatusBarCommands?: Event<ScmCommand[]>;
     readonly acceptInputCommand?: ScmCommand;
@@ -46,7 +44,6 @@ export interface ScmResourceGroup {
     readonly provider: ScmProvider;
     readonly label: string;
     readonly id: string;
-    readonly hideWhenEmpty: boolean | undefined;
     readonly onDidChange: Event<void>;
 }
 
@@ -65,9 +62,6 @@ export interface ScmResource {
 export interface ScmResourceDecorations {
     icon?: string;
     tooltip?: string;
-    strikeThrough?: boolean;
-    faded?: boolean;
-
     source?: string;
     letter?: string;
     color?: string;

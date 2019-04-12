@@ -357,7 +357,6 @@ export class GitContribution implements
             handle: 0,
             sourceControlHandle: 0,
             label,
-            hideWhenEmpty: false,
             id: label,
             provider,
             onDidChange: provider.onDidChange,

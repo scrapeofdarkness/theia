@@ -290,8 +290,6 @@ class ScmProviderImpl implements ScmProvider {
                     scmDecorations = {
                         icon,
                         tooltip: decorations.tooltip,
-                        strikeThrough: decorations.strikeThrough,
-                        faded: decorations.faded,
                         letter: resource.letter,
                         color: ScmNavigatorDecorator.getDecorationColor(resource.colorId)
                     };
