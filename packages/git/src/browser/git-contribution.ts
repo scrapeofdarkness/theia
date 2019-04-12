@@ -360,7 +360,8 @@ export class GitContribution implements
             id: label,
             provider,
             onDidChange: provider.onDidChange,
-            resources: []
+            resources: [],
+            dispose: () => {}
         };
         const scmResources: ScmResource[] = await Promise.all(changes.map(async change => {
             const icon = await this.labelProvider.getIcon(new URI(change.uri));
