@@ -88,15 +88,6 @@ export interface ScmInput extends Disposable {
     readonly onDidChange: Event<string>;
 }
 
-export interface ScmRepository extends Disposable {
-    readonly selected: boolean;
-    readonly onDidChangeSelection: Event<boolean>;
-    readonly provider: ScmProvider;
-    readonly input: ScmInput;
-
-    setSelected(selected: boolean): void;
-}
-
 @injectable()
 export class ScmService {
     private providerIds = new Set<string>();
@@ -155,7 +146,7 @@ export class ScmService {
             this.onDidRemoveProviderEmitter.fire(repository);
         });
 
-        const repository = new ScmRepositoryImpl(provider, disposable);
+        const repository = new ScmRepository(provider, disposable);
 
         this._repositories.push(repository);
         this.onDidAddProviderEmitter.fire(repository);
@@ -172,17 +163,15 @@ export class ScmService {
     }
 }
 
-class ScmRepositoryImpl implements ScmRepository {
+export class ScmRepository implements Disposable {
 
     private onDidFocusEmitter = new Emitter<void>();
     readonly onDidFocus: Event<void> = this.onDidFocusEmitter.event;
 
-    private _selected = false;
-
     private onDidChangeSelectionEmitter = new Emitter<boolean>();
     readonly onDidChangeSelection: Event<boolean> = this.onDidChangeSelectionEmitter.event;
 
-    private readonly disposables: DisposableCollection;
+    private readonly disposables: DisposableCollection = new DisposableCollection();
 
     readonly input: ScmInput = new ScmInputImpl();
 
@@ -195,17 +184,8 @@ class ScmRepositoryImpl implements ScmRepository {
         this.disposables.push(this.input);
     }
 
-    get selected(): boolean {
-        return this._selected;
-    }
-
     focus(): void {
         this.onDidFocusEmitter.fire(undefined);
-    }
-
-    setSelected(selected: boolean): void {
-        this._selected = selected;
-        this.onDidChangeSelectionEmitter.fire(selected);
     }
 
     dispose(): void {
