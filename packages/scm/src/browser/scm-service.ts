@@ -31,10 +31,7 @@ export interface ScmProvider extends Disposable {
     readonly onDidChangeCommitTemplate?: Event<string>;
     readonly onDidChangeStatusBarCommands?: Event<ScmCommand[]>;
     readonly acceptInputCommand?: ScmCommand;
-    readonly statusBarCommands?: ScmCommand[];
     readonly onDidChange: Event<void>;
-
-    getOriginalResource(uri: URI): Promise<URI | undefined>;
 }
 
 export interface ScmResourceGroup {
