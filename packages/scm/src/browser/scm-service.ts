@@ -80,39 +80,12 @@ export interface InputValidator {
     (value: string): Promise<InputValidation | undefined>;
 }
 
-export namespace InputValidator {
-    /**
-     * Type for the validation result with a status and a corresponding message.
-     */
-    export type Result = Readonly<{ message: string, type: 'info' | 'success' | 'warning' | 'error' }>;
-
-    export namespace Result {
-
-        /**
-         * `true` if the `message` and the `status` properties are the same on both `left` and `right`. Or both arguments are `undefined`. Otherwise, `false`.
-         */
-        export function equal(left: Result | undefined, right: Result | undefined): boolean {
-            if (left && right) {
-                return left.message === right.message && left.type === right.type;
-            }
-            return left === right;
-        }
-
-    }
-}
-
 export interface ScmInput {
     value: string;
-    readonly onDidChange: Event<string>;
-
     placeholder: string;
-    readonly onDidChangePlaceholder: Event<string>;
-
     validateInput: InputValidator;
-    readonly onDidChangeValidateInput: Event<void>;
 
-    visible: boolean;
-    readonly onDidChangeVisibility: Event<boolean>;
+    readonly onDidChange: Event<string>;
 }
 
 export interface ScmRepository extends Disposable {
@@ -209,9 +182,6 @@ class ScmRepositoryImpl implements ScmRepository {
     readonly onDidFocus: Event<void> = this.onDidFocusEmitter.event;
 
     private _selected = false;
-    get selected(): boolean {
-        return this._selected;
-    }
 
     private onDidChangeSelectionEmitter = new Emitter<boolean>();
     readonly onDidChangeSelection: Event<boolean> = this.onDidChangeSelectionEmitter.event;
@@ -222,6 +192,10 @@ class ScmRepositoryImpl implements ScmRepository {
         public readonly provider: ScmProvider,
         private disposable: Disposable
     ) { }
+
+    get selected(): boolean {
+        return this._selected;
+    }
 
     focus(): void {
         this.onDidFocusEmitter.fire(undefined);

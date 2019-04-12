@@ -18,6 +18,7 @@ import { ContextMenuRenderer, SELECTED_CLASS, StatefulWidget } from '@theia/core
 import * as React from 'react';
 import { AlertMessage } from '@theia/core/lib/browser/widgets/alert-message';
 import {
+    InputValidation,
     InputValidator,
     ScmInput,
     ScmRepository,
@@ -40,7 +41,7 @@ export class ScmWidget extends ScmNavigableListWidget<ScmResource> implements St
     protected message: string = '';
     protected messageBoxHeight: number = ScmWidget.MESSAGE_BOX_MIN_HEIGHT;
     protected inputCommandMessageValidator: InputValidator | undefined;
-    protected inputCommandMessageValidationResult: InputValidator.Result | undefined;
+    protected inputCommandMessageValidation: InputValidation | undefined;
     protected listContainer: ScmResourceGroupsContainer | undefined;
 
     private selectedRepoUri: string | undefined;
@@ -154,8 +155,8 @@ export class ScmWidget extends ScmNavigableListWidget<ScmResource> implements St
     }
 
     protected renderInput(input: ScmInput, repository: ScmRepository): React.ReactNode {
-        const validationStatus = this.inputCommandMessageValidationResult ? this.inputCommandMessageValidationResult.type : 'idle';
-        const validationMessage = this.inputCommandMessageValidationResult ? this.inputCommandMessageValidationResult.message : '';
+        const validationStatus = this.inputCommandMessageValidation ? this.inputCommandMessageValidation.type : 'idle';
+        const validationMessage = this.inputCommandMessageValidation ? this.inputCommandMessageValidation.message : '';
         const keyBinding = navigator.appVersion.indexOf('Mac') !== -1 ? 'Cmd+Enter' : 'Ctrl+Enter';
         // tslint:disable-next-line:no-any
         const format = (value: string, ...args: string[]): string => {
@@ -198,7 +199,7 @@ export class ScmWidget extends ScmNavigableListWidget<ScmResource> implements St
                 }
                 style={
                     {
-                        display: !!this.inputCommandMessageValidationResult ? 'block' : 'none'
+                        display: !!this.inputCommandMessageValidation ? 'block' : 'none'
                     }
                 }>{validationMessage}</div>
         </div>;
@@ -207,17 +208,23 @@ export class ScmWidget extends ScmNavigableListWidget<ScmResource> implements St
     protected onInputMessageChange(e: Event): void {
         const {target} = e;
         if (target instanceof HTMLTextAreaElement) {
-            const {value} = target;
+            const { value } = target;
             this.message = value;
             const repository = this.scmService.selectedRepository;
+            const equal = (left: InputValidation | undefined, right: InputValidation | undefined): boolean => {
+                if (left && right) {
+                    return left.message === right.message && left.type === right.type;
+                }
+                return left === right;
+            };
             if (repository) {
                 repository.input.value = value;
             }
             this.resize(target);
             if (this.inputCommandMessageValidator) {
                 this.inputCommandMessageValidator(value).then(result => {
-                    if (!InputValidator.Result.equal(this.inputCommandMessageValidationResult, result)) {
-                        this.inputCommandMessageValidationResult = result;
+                    if (!equal(this.inputCommandMessageValidation, result)) {
+                        this.inputCommandMessageValidation = result;
                         this.update();
                     }
                 });
@@ -289,14 +296,14 @@ export class ScmWidget extends ScmNavigableListWidget<ScmResource> implements St
     }
 
     private executeInputCommand(commandId: string, providerId: number): void {
-        this.inputCommandMessageValidationResult = undefined;
+        this.inputCommandMessageValidation = undefined;
         if (this.message.trim().length === 0) {
-            this.inputCommandMessageValidationResult = {
+            this.inputCommandMessageValidation = {
                 type: 'error',
                 message: 'Please provide an input'
             };
         }
-        if (this.inputCommandMessageValidationResult === undefined) {
+        if (this.inputCommandMessageValidation === undefined) {
             this.commandRegistry.executeCommand(commandId, providerId);
             this.resetInputMessages();
             this.update();
