@@ -156,6 +156,9 @@ export class HostedPluginSupport {
                 // create one RPC per host and init.
                 Object.keys(pluginsPerHost).forEach(hostKey => {
                     const plugins: PluginMetadata[] = pluginsPerHost[hostKey];
+                    plugins.forEach(plugin => {
+                        console.log('=== ' + hostKey + ' /// ' + getPluginId(plugin.model));
+                    });
                     let pluginID = hostKey;
                     if (plugins.length >= 1) {
                         pluginID = getPluginId(plugins[0].model);
@@ -163,6 +166,7 @@ export class HostedPluginSupport {
 
                     let rpc = this.rpc.get(hostKey);
                     if (!rpc) {
+                        console.log('=== create rpc for ' + pluginID);
                         rpc = this.createServerRpc(pluginID, hostKey);
                         setUpPluginApi(rpc, container);
                         this.rpc.set(hostKey, rpc);

@@ -68,8 +68,8 @@ export class QuickOpenTask implements QuickOpenModel, QuickOpenHandler {
 
         this.items = [];
         this.items.push(
-            ...configuredTasks.map((t, ind) => new TaskRunQuickOpenItem(t, this.taskService, true, ind === 0 ? 'configured tasks' : undefined)),
-            ...filteredProvidedTasks.map((t, ind) => new TaskRunQuickOpenItem(t, this.taskService, false, ind === 0 ? 'detected tasks' : undefined))
+            ...configuredTasks.map((t, ind) => new TaskRunQuickOpenItem(t, this.taskService, true, ind === 0 ? 'configured marker' : undefined)),
+            ...filteredProvidedTasks.map((t, ind) => new TaskRunQuickOpenItem(t, this.taskService, false, ind === 0 ? 'detected marker' : undefined))
         );
 
         this.actionProvider = this.items.length ? this.taskActionProvider : undefined;
