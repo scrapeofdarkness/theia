@@ -33,15 +33,18 @@ export class WebviewWidget extends BaseWidget {
     private static readonly ID = new IdGenerator('webview-widget-');
     protected readonly toDispose = new DisposableCollection();
     private iframe: HTMLIFrameElement;
-    private state: string | undefined = undefined;
+    private name: string;
+    private group: number | undefined;
+    private state: { [key: string]: any } | undefined = undefined;
     private loadTimeout: number | undefined;
 
-    constructor(title: string, private options: WebviewWidgetOptions, private eventDelegate: WebviewEvents) {
+    constructor(name: string, private options: WebviewWidgetOptions, private eventDelegate: WebviewEvents) {
         super();
         this.node.tabIndex = 0;
         this.id = WebviewWidget.ID.nextId();
+        this.name = name;
         this.title.closable = true;
-        this.title.label = title;
+        this.title.label = this.name;
         this.addClass(WebviewWidget.Styles.WEBVIEW);
     }
 
@@ -70,6 +73,34 @@ export class WebviewWidget extends BaseWidget {
 
     setIconClass(iconClass: string) {
         this.title.iconClass = iconClass;
+    }
+
+    getOptions(): WebviewWidgetOptions {
+        return this.options;
+    }
+
+    getName(): string {
+        return this.name;
+    }
+
+    getTitle() {
+        return this.getName();
+    }
+
+    getState(): { [key: string]: any } | undefined {
+        return this.state;
+    }
+
+    setState(state: { [key: string]: any } | undefined) {
+        this.state = state;
+    }
+
+    getGroup(): number | undefined {
+        return this.group;
+    }
+
+    public updateGroup(value: number | undefined): void {
+        this.group = value;
     }
 
     setHTML(html: string) {
