@@ -89,13 +89,10 @@ export interface ScmInput {
 }
 
 export interface ScmRepository extends Disposable {
-    readonly onDidFocus: Event<void>;
     readonly selected: boolean;
     readonly onDidChangeSelection: Event<boolean>;
     readonly provider: ScmProvider;
     readonly input: ScmInput;
-
-    focus(): void;
 
     setSelected(selected: boolean): void;
 }
@@ -163,7 +160,6 @@ export class ScmService {
         this._repositories.push(repository);
         this.onDidAddProviderEmitter.fire(repository);
 
-        // automatically select the first repository
         if (this._repositories.length === 1) {
             this.selectedRepository = repository;
         }
